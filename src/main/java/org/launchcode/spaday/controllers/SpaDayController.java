@@ -1,5 +1,6 @@
 package org.launchcode.spaday.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -7,23 +8,42 @@ import java.util.ArrayList;
 
 
 @Controller
+//@RequestMapping("menu")
 public class SpaDayController {
 
     public boolean checkSkinType(String skinType, String facialType) {
         if (skinType.equals("oily")) {
-            return facialType.equals("Microdermabrasion") || facialType.equals("Rejuvenating");
+            if (facialType.equals("Microdermabrasion") || facialType.equals("Rejuvenating")) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         else if (skinType.equals("combination")) {
-            return facialType.equals("Microdermabrasion") || facialType.equals("Rejuvenating") || facialType.equals("Enzyme Peel");
+            if (facialType.equals("Microdermabrasion") || facialType.equals("Rejuvenating") || facialType.equals("Enzyme Peel")) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else if (skinType.equals("normal")) {
+            return true;
         }
         else if (skinType.equals("dry")) {
-            return facialType.equals("Rejuvenating") || facialType.equals("Hydrofacial");
+            if (facialType.equals("Rejuvenating") || facialType.equals("Hydrofacial")) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         else {
             return true;
         }
     }
-
+    // This creates the form the user fills out on the first page
     @GetMapping(value="")
     @ResponseBody
     public String customerForm () {
@@ -41,28 +61,39 @@ public class SpaDayController {
                 "<select name = 'manipedi'>" +
                 "<option value = 'manicure'>Manicure</option>" +
                 "<option value = 'pedicure'>Pedicure</option>" +
+                "<option value = 'both'>Both</option>" +
                 "</select><br>" +
                 "<input type = 'submit' value = 'Submit'>" +
                 "</form>";
         return html;
     }
 
+    // Takes user input from form entry and displays when the user submits
     @PostMapping(value="")
     public String spaMenu(@RequestParam String name, @RequestParam String skintype, @RequestParam String manipedi, Model model) {
 
-        ArrayList<String> facials = new ArrayList<>();
+        ArrayList<String> facials = new ArrayList<String>();
         facials.add("Microdermabrasion");
         facials.add("Hydrofacial");
         facials.add("Rejuvenating");
         facials.add("Enzyme Peel");
 
-        ArrayList<String> appropriateFacials = new ArrayList<>();
+        //stores users specific recommended treatments
+        ArrayList<String> appropriateFacials = new ArrayList<String>();
         for (int i = 0; i < facials.size(); i ++) {
             if (checkSkinType(skintype,facials.get(i))) {
                 appropriateFacials.add(facials.get(i));
             }
         }
 
+        //adds attributes taken form user form input to be used in menu.html
+        model.addAttribute("name", name);
+        model.addAttribute("skintype", skintype);
+        model.addAttribute("manipedi", manipedi);
+
+
+        //adds attribute that can be used in menu.html to display recommendations
+        model.addAttribute("recommendedTreatments",appropriateFacials);
         return "menu";
     }
 }
